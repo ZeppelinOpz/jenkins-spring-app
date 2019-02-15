@@ -2,7 +2,7 @@ env: development
 
 image:
   tag: 1.0
-  name: zeppelinops/java-spring-app
+  name: zeppelinops/jenkins-spring-app-development
 
 petclinic:
   name: petclinic
