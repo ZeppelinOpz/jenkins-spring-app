@@ -53,32 +53,30 @@ podTemplate(label: 'petclinic',
             }             
         }
         stage('Deploy') { 
-            if() {
-                def envMap = [
-                    development: 'development',
-                    staging: 'staging',                    
-                    master: 'production'
-                ]
-                def env_x = envMap[env.BRANCH_NAME] 
-                def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-                def GIT_COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
-                container('heptio') {
-                     if(env.BRANCH_NAME == "development" || env.BRANCH_NAME == "staging" || env.BRANCH_NAME == "master" ) {
-                        dir('.helm') {
-                            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-cred']]) {
-                                sh """
-                                    export KUBECONFIG=/home/jenkins/.kube/kubeconfig                            
-                                    set +e
-                                    helm upgrade jenkins-spring-app-${env_x} . -f values-${env_x}.yaml --set image.tag=${GIT_COMMIT} --install --wait --force
-                                    export DEPLOY_RESULT=\$?
-                                    [ \$DEPLOY_RESULT -eq 1 ] && helm rollback jenkins-spring-app-${env_x} 0 && exit 1
-                                    set -e
-                                """
-                            }
+            def envMap = [
+                development: 'development',
+                staging: 'staging',                    
+                master: 'production'
+            ]
+            def env_x = envMap[env.BRANCH_NAME] 
+            def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+            def GIT_COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
+            container('heptio') {
+                    if(env.BRANCH_NAME == "development" || env.BRANCH_NAME == "staging" || env.BRANCH_NAME == "master" ) {
+                    dir('.helm') {
+                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-cred']]) {
+                            sh """
+                                export KUBECONFIG=/home/jenkins/.kube/kubeconfig                            
+                                set +e
+                                helm upgrade jenkins-spring-app-${env_x} . -f values-${env_x}.yaml --set image.tag=${GIT_COMMIT} --install --wait --force
+                                export DEPLOY_RESULT=\$?
+                                [ \$DEPLOY_RESULT -eq 1 ] && helm rollback jenkins-spring-app-${env_x} 0 && exit 1
+                                set -e
+                            """
                         }
                     }
                 }
-            }
+            } 
         }
         }
         finally {
